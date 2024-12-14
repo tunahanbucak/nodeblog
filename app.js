@@ -1,8 +1,84 @@
 const express = require("express");
 const morgan = require("morgan");
-
+const mongoose = require("mongoose");
+const Blog = require("./models/blogs");
 const app = express();
-app.listen(3001);
+
+const dbURL =
+  "mongodb+srv://tunahan:asd123@nodeblog.p0cvp.mongodb.net/nodeblog?retryWrites=true&w=majority&appName=NodeBlog";
+mongoose
+  .connect(dbURL)
+  .then((result) => app.listen(3001))
+  //console.log("baglanti kuruldu"))
+  .catch((err) => console.log(err));
+
+app.set("view engine", "ejs"); // html dosyasi icinde jskodlariniyazmak icin ejs paketii kullandik
+
+app.use(express.static("public")); // cssleri statik oalrak yuklemek icin bu kullanilir
+app.use(morgan("tiny"));
+
+// app.get("/add", (req, res) => {
+//   const blog = new Blog({
+//     title: "Yeni yazi2",
+//     short: "Kisa aciklama",
+//     long: "Uzun aciklama",
+//   });
+
+//   blog
+//     .save() //database e kaydetmek icin
+//     .then((result) => {
+//       // eger basarili olursa
+//       res.send(result);
+//     })
+//     // basarisiz olursa
+//     .catch((err) => {
+//       console.log(err);
+//       res.status(500).send("An error occurred while fetching blogs.");
+//     });
+// });
+
+// //burda databasedeki tum verilere eristik
+// app.get("/all", (req, res) => {
+//   Blog.find() //database deki yuklu dosyalara erisir
+//     //cevaplri goruntuler
+//     .then((result) => {
+//       res.send(result);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
+// //tek bir veriye erismek icin de id kullanarak yapariz
+// app.get("/single", (req, res) => {
+//   Blog.findById("675d7379e004a472b2b0644f")
+//     .then((result) => {
+//       res.send(result);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
+app.get("/", (req, res) => {
+  Blog.find()
+    .sort({ createdAt: -1 }) // en son kaydedilen en ustte olur
+    .then((result) => {
+      res.render("index", { title: "Anasayfa", blogs: result }); //databaseden gelen veriyi kullanmak icin, blogs:result ile databaseden gelen veriyi yazdirdik
+    });
+  // res.render("index", { title: "Anasayfa" }); // bu title i html dosyasina gondermek icin html dosyasdonda <%%> etieketi icerisinde yazmamiz laazim ve dosyalarin ismini index.html degil de index.ejs yapmamiz lazim
+});
+
+app.get("/about", (req, res) => {
+  res.render("about", { title: "Hakkimizda" });
+});
+app.get("/login", (req, res) => {
+  res.render("login", { title: "Giris" });
+});
+
+app.use((req, res) => {
+  res.status(404).render(404, { title: "Sayfa bulunamadi" });
+});
 
 // app.get("/", (req, res) => {
 //   //  res.send("<h1>Anasayfa</h1>");
@@ -32,23 +108,3 @@ app.listen(3001);
 //   console.log(req.method);
 //   next();
 // }); bunun yerine morgan paketini kullanarak yapabiliriz
-
-app.use(express.static("public")); // cssleri statik oalrak yuklemek icin bu kullanilir
-app.use(morgan("tiny"));
-
-app.set("view engine", "ejs"); // html dosyasi icinde jskodlariniyazmak icin ejs paketii kullandik
-
-app.get("/", (req, res) => {
-  res.render("index", { title: "Anasayfa" }); // bu title i html dosyasina gondermek icin html dosyasdonda <%%> etieketi icerisinde yazmamiz laazim ve dosyalarin ismini index.html degil de index.ejs yapmamiz lazim
-});
-
-app.get("/about", (req, res) => {
-  res.render("about", { title: "Hakkimizda" });
-});
-app.get("/login", (req, res) => {
-  res.render("login", { title: "Giris" });
-});
-
-app.use((req, res) => {
-  res.status(404).render(404, { title: "Sayfa bulunamadi" });
-});

@@ -2,24 +2,21 @@
 <html lang="en">
   <head>
     <%-include('./inc/head')%>
+    <!-- head i baska yerde olusturduk ve burada kullandik -->
   </head>
   <body>
     <%-include('./inc/nav')%>
     <section>
       <h1>yazilar</h1>
       <ul>
+        <% blogs.forEach(blog => { %>
         <li>
-          <a href="#">Blog 1</a>
-          <p>
-            nostrud admoud litteris fabulas iudicem proident probant consequat
-          </p>
+          <a href="#"><%=blog.title%></a>
+          <!-- gelen veriyi  yazdirdik  -->
+          <p><%=blog.short%></p>
         </li>
-        <li>
-          <a href="#">Blog 2</a>
-          <p>
-            nostrud admoud litteris fabulas iudicem proident probant consequat
-          </p>
-        </li>
+        <% })%>
+
         <li>
           <a href="#">Blog 3</a>
           <p>
