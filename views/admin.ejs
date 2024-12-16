@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%-include('./inc/head')%>
+    <!-- head i baska yerde olusturduk ve burada kullandik -->
+  </head>
+  <body>
+    <%-include('./inc/nav')%>
+    <section>
+      <a href="/admin/add">yeni yazi ekle</a>
+      <h1>yazilar</h1>
+      <ul>
+        <% blogs.forEach(blog => { %>
+        <li>
+          <!-- gelen veriyi  yazdirdik  -->
+          <p><%=blog.title%></p>
+          <a class="del" data-doc="<%=blog._id%>"> sil </a>
+        </li>
+        <% })%>
+      </ul>
+    </section>
+    <script>
+      const del = document.querySelector("a.del"); // a etkitenin del sinifina ulastik
+
+      del.addEventListener("click", (e) => {
+        const endpoint = `/admin/delete/${del.dataset.doc}`;
+
+        fetch(endpoint, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => (window.location.href = data.link))
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+    </script>
+  </body>
+</html>
