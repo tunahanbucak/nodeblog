@@ -1,7 +1,12 @@
 const express = require("express");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
-const Blog = require("./models/blogs");
+const cookieParser = require("cookie-parser");
+const adminRoutes = require("./routes/adminRoute");
+const blogRoutes = require("./routes/blogRoutes");
+const authRoutes = require("./routes/authRoutes");
+const { requireAuth, checkUser } = require("./middlewares/authMiddleware");
+
 const app = express();
 
 const dbURL =
@@ -15,77 +20,21 @@ mongoose
 app.set("view engine", "ejs"); // html dosyasi icinde jskodlariniyazmak icin ejs paketii kullandik
 
 app.use(express.static("public")); // cssleri statik oalrak yuklemek icin bu kullanilir
-app.use(morgan("tiny"));
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+app.use(cookieParser());
 
+app.get("*", checkUser);
 app.get("/", (req, res) => {
-  Blog.find()
-    .sort({ createdAt: -1 }) // en son kaydedilen en ustte olur
-    .then((result) => {
-      res.render("index", { title: "Anasayfa", blogs: result }); //databaseden gelen veriyi kullanmak icin, blogs:result ile databaseden gelen veriyi yazdirdik
-    });
-  // res.render("index", { title: "Anasayfa" }); // bu title i html dosyasina gondermek icin html dosyasdonda <%%> etieketi icerisinde yazmamiz laazim ve dosyalarin ismini index.html degil de index.ejs yapmamiz lazim
+  res.redirect("/blog");
 });
 
-app.get("/blog/:id", (req, res) => {
-  const id = req.params.id;
-  Blog.findById(id)
-    .then((result) => {
-      res.render("blog", { blog: result, title: "Detay" });
-    })
-    .catch((err) => {
-      res.status(404).render(404, { title: "Sayfa bulunamadi" });
-    });
-});
-
-app.get("/admin", (req, res) => {
-  Blog.find()
-    .sort({ createdAt: -1 })
-    .then((result) => {
-      res.render("admin", { title: "Admin", blogs: result });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-app.get("/admin/add", (req, res) => {
-  // yeni yazi ekleme
-  res.render("add", { title: "yeni yazi" });
-});
-
-app.post("/admin/add", (req, res) => {
-  // eklenen yeni yaziyi post ile veritabanina gonderiyoruz
-  // console.log(req.body); // gelen veriyi body icinde konsola yazdirdik
-
-  const blog = new Blog(req.body);
-
-  blog
-    .save() // veritabanina kaydediyoruz
-    .then((result) => {
-      res.redirect("/admin"); //admin sayfasina yonlendirsin
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-app.delete("/admin/delete/:id", (req, res) => {
-  const id = req.params.id;
-  Blog.findByIdAndDelete(id) //databasedeki dosyayi buluyor ve silme islemini gercekelstiriyor
-    .then((result) => {
-      res.json({ link: "/admin" }); //delete metodu ile gelen istegimize json ile cevap dondurecegiz
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
+app.use("/", authRoutes);
+app.use("/blog", blogRoutes);
+app.use("/admin", requireAuth, adminRoutes);
 
 app.get("/about", (req, res) => {
   res.render("about", { title: "Hakkimizda" });
-});
-app.get("/login", (req, res) => {
-  res.render("login", { title: "Giris" });
 });
 
 app.use((req, res) => {

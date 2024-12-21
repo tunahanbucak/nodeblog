@@ -3,6 +3,10 @@
   <ul>
     <li><a href="/">Anasayfa</a></li>
     <li><a href="/about">Hakkimizda</a></li>
+    <% if(user) {%>
+    <li><a href="/logout">Çıkış</a></li>
+    <% }else { %>
     <li><a href="/login">Giris</a></li>
+    <% } %>
   </ul>
 </nav>
